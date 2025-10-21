@@ -3,151 +3,139 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Doppelansicht – Clean (responsive Vollbild-Abfrage)</title>
+  <title>Anzeige – Infos (Responsive)</title>
   <style>
-    :root {
-      --bg: #000;
+    :root{
+      --bg: #0b0b0b;
+      --card: #121212;
       --fg: #fff;
-      --gap: 0px;
-      --header1-crop: 80px;
-      --header2-crop: 80px;
-      --radius: 0px;
-      --fs-h1: clamp(18px, 3.2vw, 28px);
-      --fs-p: clamp(13px, 2.2vw, 16px);
-      --fs-btn: clamp(13px, 2.3vw, 16px);
-      --pad: clamp(14px, 3.5vw, 24px);
-      --btn-pad-y: clamp(10px, 2.2vw, 14px);
-      --btn-pad-x: clamp(12px, 3vw, 18px);
+      --muted: rgba(255,255,255,.7);
+      --accent: #43c6ff;
+      --radius: 16px;
+      --pad: clamp(16px, 3.5vw, 28px);
+      --fs-h1: clamp(20px, 4vw, 36px);
+      --fs-h2: clamp(16px, 2.8vw, 22px);
+      --fs-body: clamp(14px, 2.3vw, 18px);
+      --fs-small: clamp(12px, 2vw, 14px);
+      --gap: clamp(12px, 2.5vw, 20px);
+      --gap-lg: clamp(16px, 3.0vw, 28px);
+      --shadow: 0 8px 30px rgba(0,0,0,.35);
     }
     * { box-sizing: border-box; }
     html, body {
-      margin: 0; height: 100%;
-      background: var(--bg); color: var(--fg);
+      margin: 0; height: 100%; background: var(--bg); color: var(--fg);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      overflow: hidden;
     }
-    .layout {
-      position: fixed; inset: 0;
-      display: grid; gap: var(--gap);
-      grid-template-rows: 1fr 1fr;
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: var(--gap);
+      padding: calc(var(--pad) + env(safe-area-inset-top)) calc(var(--pad) + env(safe-area-inset-right)) calc(var(--pad) + env(safe-area-inset-bottom)) calc(var(--pad) + env(safe-area-inset-left));
     }
-    .pane { position: relative; overflow: hidden; border-radius: var(--radius); background: #111; }
-    .frame {
-      position: absolute; inset: 0;
-      width: 100%; height: calc(100% + 300px);
-      border: 0; transform: translateY(0); will-change: transform; background: #111;
+    header {
+      display: grid; grid-template-columns: auto 1fr; gap: var(--gap);
+      align-items: center;
     }
-    .pane1 .frame { transform: translateY(calc(-1 * var(--header1-crop))); }
-    .pane2 .frame { transform: translateY(calc(-1 * var(--header2-crop))); }
+    .logo {
+      width: clamp(48px, 10vw, 80px); height: clamp(48px, 10vw, 80px);
+      background: #111; border-radius: 50%; display: grid; place-items: center;
+      overflow: hidden; box-shadow: var(--shadow);
+    }
+    .logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .title h1 { margin: 0; font-size: var(--fs-h1); letter-spacing: .2px; }
+    .title p { margin: .3em 0 0 0; color: var(--muted); font-size: var(--fs-body); }
 
-    /* Responsive Vollbild-Overlay */
-    .overlay {
-      position: fixed; inset: 0; z-index: 10;
-      display: flex; align-items: center; justify-content: center; flex-direction: column; gap: calc(var(--pad) * 0.7);
-      padding: calc(var(--pad) + env(safe-area-inset-top)) calc(var(--pad) + env(safe-area-inset-right))
-               calc(var(--pad) + env(safe-area-inset-bottom)) calc(var(--pad) + env(safe-area-inset-left));
-      background: radial-gradient(1200px 600px at 50% -20%, rgba(255,255,255,.08), rgba(0,0,0,.92));
-      color: #fff; text-align: center;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: var(--gap-lg);
     }
-    .overlay h1 { margin: 0; font-size: var(--fs-h1); font-weight: 700; }
-    .overlay p { margin: 0; opacity: .85; font-size: var(--fs-p); }
+    @media (max-width: 900px){
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: var(--pad);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+    .card h2 {
+      margin: 0 0 .4em 0; font-size: var(--fs-h2);
+      display: flex; align-items: center; gap: .6em;
+    }
+    .badge {
+      display:inline-grid; place-items:center;
+      width: 1.9em; height: 1.9em; border-radius: 10px;
+      background: rgba(67,198,255,.15);
+      color: var(--accent); font-weight: 700;
+      font-size: .85em;
+    }
+    .list { display: grid; gap: .5em; font-size: var(--fs-body); }
+    .muted { color: var(--muted); font-size: var(--fs-small); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { opacity: .7; font-size: var(--fs-small); display:flex; justify-content: space-between; align-items: center; gap: var(--gap); flex-wrap: wrap; }
     .btn {
-      appearance: none; border: 0; border-radius: 12px;
-      padding: var(--btn-pad-y) var(--btn-pad-x);
-      background: rgba(255,255,255,.14); color: #fff; cursor: pointer; font-size: var(--fs-btn);
-      min-width: 11ch;
-      touch-action: manipulation;
-    }
-    .btn:focus-visible { outline: 2px solid rgba(255,255,255,.6); outline-offset: 2px; }
-    .muted { font-size: clamp(11px, 2vw, 13px); opacity: .7; display: block; margin-top: -6px; }
-    .hidden { display: none !important; }
-
-    @media (max-height: 480px) {
-      .overlay { gap: calc(var(--pad) * 0.4); }
-      .muted { display: none; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .overlay { background: rgba(0,0,0,.9); }
+      appearance: none; border: 0; background: rgba(255,255,255,.12); color: #fff;
+      padding: .7em 1em; border-radius: 12px; cursor: pointer; font-size: var(--fs-small);
     }
   </style>
 </head>
 <body>
-  <main class="layout">
-    <section class="pane pane1">
-      <iframe id="frame1" class="frame" title="Ansicht 1"></iframe>
-    </section>
-    <section class="pane pane2">
-      <iframe id="frame2" class="frame" title="Ansicht 2"></iframe>
-    </section>
-  </main>
+  <div class="wrap">
+    <header>
+      <div class="logo">
+        <!-- Optional: eigenes Logo als logo.png in denselben Ordner legen -->
+        <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+      </div>
+      <div class="title">
+        <h1>Anzeige – Infos</h1>
+        <p class="muted">Übersicht & Quellen der 4‑Fenster‑Anzeige. Diese Seite ist vollständig responsive.</p>
+      </div>
+    </header>
 
-  <!-- Responsives Vollbild-Overlay -->
-  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Anzeige starten">
-    <h1>Anzeige starten</h1>
-    <p>Für eine saubere Darstellung bitte im <strong>Vollbild</strong> starten.</p>
-    <div>
-      <button class="btn" id="startFs">Vollbild starten</button>
-      <span class="muted">oder F11 drücken</span>
-    </div>
-    <button class="btn" id="skip">Ohne Vollbild fortfahren</button>
+    <section class="grid">
+      <article class="card">
+        <h2><span class="badge">TL</span> Oben links – Spielplan</h2>
+        <div class="list">
+          <div>Quelle: <a href="https://belegung.org/cgi-bin/preview20.pl?pbid=52" target="_blank" rel="noopener">belegung.org – Spielplan (pbid=52)</a></div>
+          <div class="muted">Wird in der Hauptanzeige direkt eingebettet.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2><span class="badge">TR</span> Oben rechts – OR Inhalte</h2>
+        <div class="list">
+          <div>URL: <a href="https://fc09jugendfussball.github.io/display-or/" target="_blank" rel="noopener">fc09jugendfussball.github.io/display-or/</a></div>
+          <div class="muted">Zeigt alle Dateien außer index.html als Slideshow (15 s).</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2><span class="badge">BL</span> Unten links – UL Inhalte</h2>
+        <div class="list">
+          <div>URL: <a href="https://fc09jugendfussball.github.io/display-ul/" target="_blank" rel="noopener">fc09jugendfussball.github.io/display-ul/</a></div>
+          <div class="muted">Upload per GitHub (oder künftig per externem Webspace) – keine Anpassung nötig.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2><span class="badge">BR</span> Unten rechts – UR Inhalte</h2>
+        <div class="list">
+          <div>URL: <a href="https://fc09jugendfussball.github.io/display-ur/" target="_blank" rel="noopener">fc09jugendfussball.github.io/display-ur/</a></div>
+          <div class="muted">Unterstützt Bilder & PDF; Reihenfolge alphabetisch.</div>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      <div class="muted">Tipp: Logo als <code>logo.png</code> neben diese Seite legen – wird automatisch oben angezeigt.</div>
+      <div>
+        <a class="btn" href="https://fc09jugendfussball.github.io/main-display/" target="_blank" rel="noopener">Hauptanzeige öffnen</a>
+      </div>
+    </footer>
   </div>
-
-  <script>
-    const URL_1 = "https://belegung.org/cgi-bin/belegung.pl?qr=52!1!296!";
-    const URL_2 = "https://belegung.org/cgi-bin/belegung.pl?qr=52!2!296!";
-    const RELOAD_EVERY_MS = 60 * 60 * 1000;
-
-    function withCacheBuster(url) {
-      const t = Date.now();
-      const sep = url.includes('?') ? '&' : '?';
-      return `${url}${sep}_=${t}`;
-    }
-
-    function setVh() {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    }
-    setVh(); window.addEventListener('resize', setVh);
-
-    const f1 = document.getElementById('frame1');
-    const f2 = document.getElementById('frame2');
-    function loadAll(){
-      f1.src = withCacheBuster(URL_1);
-      f2.src = withCacheBuster(URL_2);
-    }
-    loadAll();
-    setInterval(loadAll, RELOAD_EVERY_MS);
-
-    const overlay = document.getElementById('overlay');
-    const startFs = document.getElementById('startFs');
-    const skip = document.getElementById('skip');
-
-    async function enterFullscreen() {
-      try {
-        await document.documentElement.requestFullscreen();
-      } catch(e) { }
-      overlay.classList.add('hidden');
-      sessionStorage.setItem('fs_ack', '1');
-    }
-    startFs.addEventListener('click', enterFullscreen);
-    skip.addEventListener('click', () => {
-      overlay.classList.add('hidden');
-      sessionStorage.setItem('fs_ack', '1');
-    });
-    document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape' && !document.fullscreenElement) {
-        overlay.classList.add('hidden');
-        sessionStorage.setItem('fs_ack', '1');
-      }
-    });
-    if (sessionStorage.getItem('fs_ack') === '1' || document.fullscreenElement) {
-      overlay.classList.add('hidden');
-    }
-    document.addEventListener('fullscreenchange', () => {
-      if (document.fullscreenElement) overlay.classList.add('hidden');
-    });
-    console.log('Hinweis: Wenn eine Zielseite das Einbetten verbietet (X-Frame-Options/CSP), muss sie es erlauben.');
-  </script>
 </body>
 </html>
