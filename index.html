@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Main Display – Clean 2×2</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%; background: #000; overflow: hidden;
+    }
+    .grid {
+      position: fixed; inset: 0; display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0; /* absolut clean, keine Abstände */
+      background: #000;
+    }
+    iframe {
+      width: 100%; height: 100%; border: 0; background: #000;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <iframe id="tl" title="oben links"></iframe>
+    <iframe id="tr" title="oben rechts"></iframe>
+    <iframe id="bl" title="unten links"></iframe>
+    <iframe id="br" title="unten rechts"></iframe>
+  </div>
+
+  <script>
+    // Quellen
+    const TL_URL = "https://belegung.org/cgi-bin/preview20.pl?pbid=52";
+    const TR_URL = "https://fc09jugendfussball.github.io/display-or/";
+    const BL_URL = "https://fc09jugendfussball.github.io/display-ul/";
+    const BR_URL = "https://fc09jugendfussball.github.io/display-ur/";
+    const RELOAD_HOURLY_MS = 60*60*1000; // stündlich neu laden
+
+    const tl = document.getElementById("tl");
+    const tr = document.getElementById("tr");
+    const bl = document.getElementById("bl");
+    const br = document.getElementById("br");
+
+    function withCB(u) {
+      return u + (u.includes("?") ? "&" : "?") + "_=" + Date.now();
+    }
+    function loadAll() {
+      tl.src = withCB(TL_URL);
+      tr.src = withCB(TR_URL);
+      bl.src = withCB(BL_URL);
+      br.src = withCB(BR_URL);
+    }
+    loadAll();
+    setInterval(loadAll, RELOAD_HOURLY_MS);
+
+    // Hinweis: Falls eine eingebettete Quelle iFrames blockt (X-Frame-Options/CSP),
+    // muss dies auf der Quellseite erlaubt werden.
+  </script>
+</body>
+</html>
