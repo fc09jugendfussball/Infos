@@ -2,48 +2,90 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Main Display – Clean 2×2 (Fullscreen Prompt)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Doppelansicht – Clean (responsive Vollbild-Abfrage)</title>
   <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-    .grid {
-      position: fixed; inset: 0; display: grid;
-      grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0;
-      background: #000;
+    :root {
+      --bg: #000;
+      --fg: #fff;
+      --gap: 0px;
+      --header1-crop: 80px;
+      --header2-crop: 80px;
+      --radius: 0px;
+      --fs-h1: clamp(18px, 3.2vw, 28px);
+      --fs-p: clamp(13px, 2.2vw, 16px);
+      --fs-btn: clamp(13px, 2.3vw, 16px);
+      --pad: clamp(14px, 3.5vw, 24px);
+      --btn-pad-y: clamp(10px, 2.2vw, 14px);
+      --btn-pad-x: clamp(12px, 3vw, 18px);
     }
-    iframe { width: 100%; height: 100%; border: 0; background: #000; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%;
+      background: var(--bg); color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      overflow: hidden;
+    }
+    .layout {
+      position: fixed; inset: 0;
+      display: grid; gap: var(--gap);
+      grid-template-rows: 1fr 1fr;
+    }
+    .pane { position: relative; overflow: hidden; border-radius: var(--radius); background: #111; }
+    .frame {
+      position: absolute; inset: 0;
+      width: 100%; height: calc(100% + 300px);
+      border: 0; transform: translateY(0); will-change: transform; background: #111;
+    }
+    .pane1 .frame { transform: translateY(calc(-1 * var(--header1-crop))); }
+    .pane2 .frame { transform: translateY(calc(-1 * var(--header2-crop))); }
 
-    /* Start-Overlay für Vollbildabfrage */
+    /* Responsive Vollbild-Overlay */
     .overlay {
       position: fixed; inset: 0; z-index: 10;
-      display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+      display: flex; align-items: center; justify-content: center; flex-direction: column; gap: calc(var(--pad) * 0.7);
+      padding: calc(var(--pad) + env(safe-area-inset-top)) calc(var(--pad) + env(safe-area-inset-right))
+               calc(var(--pad) + env(safe-area-inset-bottom)) calc(var(--pad) + env(safe-area-inset-left));
       background: radial-gradient(1200px 600px at 50% -20%, rgba(255,255,255,.08), rgba(0,0,0,.92));
-      color: #fff; text-align: center; padding: 24px;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: #fff; text-align: center;
     }
-    .overlay h1 { margin: 0; font-size: 22px; font-weight: 700; }
-    .overlay p { margin: 0; opacity: .8; font-size: 14px; }
+    .overlay h1 { margin: 0; font-size: var(--fs-h1); font-weight: 700; }
+    .overlay p { margin: 0; opacity: .85; font-size: var(--fs-p); }
     .btn {
-      appearance: none; border: 0; border-radius: 10px; padding: 10px 14px;
-      background: rgba(255,255,255,.12); color: #fff; cursor: pointer; font-size: 14px;
+      appearance: none; border: 0; border-radius: 12px;
+      padding: var(--btn-pad-y) var(--btn-pad-x);
+      background: rgba(255,255,255,.14); color: #fff; cursor: pointer; font-size: var(--fs-btn);
+      min-width: 11ch;
+      touch-action: manipulation;
     }
-    .muted { font-size: 12px; opacity: .7; }
+    .btn:focus-visible { outline: 2px solid rgba(255,255,255,.6); outline-offset: 2px; }
+    .muted { font-size: clamp(11px, 2vw, 13px); opacity: .7; display: block; margin-top: -6px; }
     .hidden { display: none !important; }
+
+    @media (max-height: 480px) {
+      .overlay { gap: calc(var(--pad) * 0.4); }
+      .muted { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .overlay { background: rgba(0,0,0,.9); }
+    }
   </style>
 </head>
 <body>
-  <div class="grid">
-    <iframe id="tl" title="oben links"></iframe>
-    <iframe id="tr" title="oben rechts"></iframe>
-    <iframe id="bl" title="unten links"></iframe>
-    <iframe id="br" title="unten rechts"></iframe>
-  </div>
+  <main class="layout">
+    <section class="pane pane1">
+      <iframe id="frame1" class="frame" title="Ansicht 1"></iframe>
+    </section>
+    <section class="pane pane2">
+      <iframe id="frame2" class="frame" title="Ansicht 2"></iframe>
+    </section>
+  </main>
 
-  <!-- Vollbildabfrage (nur beim Start sichtbar) -->
-  <div class="overlay" id="overlay">
+  <!-- Responsives Vollbild-Overlay -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Anzeige starten">
     <h1>Anzeige starten</h1>
-    <p>Für eine saubere Darstellung ohne Browserleisten bitte im <strong>Vollbild</strong> starten.</p>
+    <p>Für eine saubere Darstellung bitte im <strong>Vollbild</strong> starten.</p>
     <div>
       <button class="btn" id="startFs">Vollbild starten</button>
       <span class="muted">oder F11 drücken</span>
@@ -52,29 +94,31 @@
   </div>
 
   <script>
-    // Quellen
-    const TL_URL = "https://belegung.org/cgi-bin/preview20.pl?pbid=52";
-    const TR_URL = "https://fc09jugendfussball.github.io/display-or/";
-    const BL_URL = "https://fc09jugendfussball.github.io/display-ul/";
-    const BR_URL = "https://fc09jugendfussball.github.io/display-ur/";
-    const RELOAD_HOURLY_MS = 60*60*1000; // stündlich neu laden
+    const URL_1 = "https://belegung.org/cgi-bin/belegung.pl?qr=52!1!296!";
+    const URL_2 = "https://belegung.org/cgi-bin/belegung.pl?qr=52!2!296!";
+    const RELOAD_EVERY_MS = 60 * 60 * 1000;
 
-    const tl = document.getElementById("tl");
-    const tr = document.getElementById("tr");
-    const bl = document.getElementById("bl");
-    const br = document.getElementById("br");
+    function withCacheBuster(url) {
+      const t = Date.now();
+      const sep = url.includes('?') ? '&' : '?';
+      return `${url}${sep}_=${t}`;
+    }
 
-    function withCB(u) { return u + (u.includes("?") ? "&" : "?") + "_=" + Date.now(); }
-    function loadAll() {
-      tl.src = withCB(TL_URL);
-      tr.src = withCB(TR_URL);
-      bl.src = withCB(BL_URL);
-      br.src = withCB(BR_URL);
+    function setVh() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    setVh(); window.addEventListener('resize', setVh);
+
+    const f1 = document.getElementById('frame1');
+    const f2 = document.getElementById('frame2');
+    function loadAll(){
+      f1.src = withCacheBuster(URL_1);
+      f2.src = withCacheBuster(URL_2);
     }
     loadAll();
-    setInterval(loadAll, RELOAD_HOURLY_MS);
+    setInterval(loadAll, RELOAD_EVERY_MS);
 
-    // Vollbild-Overlay Logik
     const overlay = document.getElementById('overlay');
     const startFs = document.getElementById('startFs');
     const skip = document.getElementById('skip');
@@ -82,14 +126,28 @@
     async function enterFullscreen() {
       try {
         await document.documentElement.requestFullscreen();
-      } catch(e) { /* ignorieren */ }
+      } catch(e) { }
       overlay.classList.add('hidden');
+      sessionStorage.setItem('fs_ack', '1');
     }
     startFs.addEventListener('click', enterFullscreen);
-    skip.addEventListener('click', () => overlay.classList.add('hidden'));
+    skip.addEventListener('click', () => {
+      overlay.classList.add('hidden');
+      sessionStorage.setItem('fs_ack', '1');
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && !document.fullscreenElement) {
+        overlay.classList.add('hidden');
+        sessionStorage.setItem('fs_ack', '1');
+      }
+    });
+    if (sessionStorage.getItem('fs_ack') === '1' || document.fullscreenElement) {
+      overlay.classList.add('hidden');
+    }
     document.addEventListener('fullscreenchange', () => {
       if (document.fullscreenElement) overlay.classList.add('hidden');
     });
+    console.log('Hinweis: Wenn eine Zielseite das Einbetten verbietet (X-Frame-Options/CSP), muss sie es erlauben.');
   </script>
 </body>
 </html>
