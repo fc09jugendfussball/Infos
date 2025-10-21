@@ -3,155 +3,78 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vierfach-Ansicht – Full‑HD Dashboard</title>
+  <title>Hauptdisplay – 4-Fenster</title>
   <style>
     :root {
-      --bg: #000;
-      --fg: #fff;
-      --gap: 8px;             /* Abstand zwischen Feldern */
-      --radius: 12px;         /* Eckenradien */
-      --crop-tl: 0px;         /* optionaler Header-Beschnitt oben links */
+      --gap: 8px; --bg:#000; --fg:#fff; --radius:12px; --topbar:48px;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; overflow: hidden; }
-    .grid {
-      position: fixed; inset: 0; padding: var(--gap);
-      display: grid; gap: var(--gap);
-      grid-template-columns: 1fr 1fr; /* links | rechts */
-      grid-template-rows: 1fr 1fr;    /* oben  | unten */
-    }
-    .pane {
-      position: relative; overflow: hidden; border-radius: var(--radius); background: #111;
-      outline: 1px solid rgba(255,255,255,.08);
-    }
-    .frame {
-      position: absolute; inset: 0;
-      width: 100%; height: calc(100% + 300px);
-      border: 0; background: #111;
-      transform: translateY(0);
-    }
-    /* optionaler Beschnitt für die externe Seite oben links */
-    .pane-tl .frame { transform: translateY(calc(-1 * var(--crop-tl))); }
-    .label {
-      position: absolute; left: 10px; top: 10px; z-index: 2;
-      font-size: 11px; opacity: .75; background: rgba(0,0,0,.45);
-      padding: 4px 8px; border-radius: 8px;
-    }
-    .hud {
-      position: fixed; right: 10px; top: 10px; z-index: 5;
-      display: flex; gap: 8px; align-items: center;
-      background: rgba(0,0,0,.6); padding: 6px 10px; border-radius: 10px; font-size: 12px;
-    }
-    .btn { appearance: none; border: 0; padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,.12); color: var(--fg); cursor: pointer; }
+    html, body { margin:0; height:100%; background:var(--bg); color:var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; overflow:hidden; }
+    .topbar { position:fixed; inset:0 0 auto 0; height:var(--topbar); display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 14px; background:rgba(0,0,0,.75); border-bottom:1px solid rgba(255,255,255,.08); z-index:10; }
+    .weekday { font-weight:700; }
+    .actions { display:flex; gap:8px; align-items:center; }
+    .btn { appearance:none; border:0; border-radius:10px; padding:6px 10px; background:rgba(255,255,255,.12); color:var(--fg); cursor:pointer; font-size:12px }
+    .grid { position: fixed; inset: var(--topbar) 0 0 0; padding: var(--gap); display:grid; gap: var(--gap); grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+    .pane { position:relative; overflow:hidden; border-radius:var(--radius); background:#111; outline:1px solid rgba(255,255,255,.08) }
+    .label { position:absolute; left:10px; top:10px; z-index:2; font-size:11px; opacity:.75; background:rgba(0,0,0,.45); padding:4px 8px; border-radius:8px }
+    iframe { position:absolute; inset:0; width:100%; height:100%; border:0; background:#111 }
   </style>
 </head>
 <body>
+  <div class="topbar">
+    <div class="weekday" id="weekday">–</div>
+    <div class="actions">
+      <button class="btn" id="reload">Neu laden</button>
+      <button class="btn" id="fullscreen">Vollbild</button>
+    </div>
+  </div>
   <div class="grid">
-    <!-- Links oben: feste externe Seite -->
-    <section class="pane pane-tl">
-      <iframe id="tl" class="frame" title="Links oben"></iframe>
+    <section class="pane">
       <div class="label">Links oben</div>
+      <iframe id="tl"></iframe>
     </section>
-    <!-- Rechts oben: Ordner OR -->
-    <section class="pane pane-tr">
-      <iframe id="tr" class="frame" title="Rechts oben (OR)"></iframe>
-      <div class="label">Rechts oben – Ordner „OR“</div>
+    <section class="pane">
+      <div class="label">Rechts oben (OR)</div>
+      <iframe id="tr"></iframe>
     </section>
-    <!-- Links unten: Ordner UL -->
-    <section class="pane pane-bl">
-      <iframe id="bl" class="frame" title="Links unten (UL)"></iframe>
-      <div class="label">Links unten – Ordner „UL“</div>
+    <section class="pane">
+      <div class="label">Links unten (UL)</div>
+      <iframe id="bl"></iframe>
     </section>
-    <!-- Rechts unten: Ordner UR -->
-    <section class="pane pane-br">
-      <iframe id="br" class="frame" title="Rechts unten (UR)"></iframe>
-      <div class="label">Rechts unten – Ordner „UR“</div>
+    <section class="pane">
+      <div class="label">Rechts unten (UR)</div>
+      <iframe id="br"></iframe>
     </section>
   </div>
-
-  <!-- kleine HUD: Vollbild & Reload & Beschnitt feinjustieren -->
-  <div class="hud">
-    <button class="btn" id="tlMinus">TL −</button>
-    <button class="btn" id="tlPlus">TL +</button>
-    <button class="btn" id="reloadAll">Neu laden</button>
-    <button class="btn" id="fullscreen">Vollbild</button>
-  </div>
-
   <script>
-    // =============================
-    // Konfiguration
-    // =============================
-    const TL_URL = "https://belegung.org/cgi-bin/preview20.pl"; // oben links
-    // Die Ordner liegen relativ zur index.html – passe bei Bedarf die Pfade an:
-    const BL_URL = "UL/";  // links unten  (Ordner „UL“)
-    const TR_URL = "OR/";  // rechts oben  (Ordner „OR“)
-    const BR_URL = "UR/";  // rechts unten (Ordner „UR“)
+    const TL_URL = "https://belegung.org/cgi-bin/preview20.pl";
+    const TR_URL = "https://fc09jugendfussball.github.io/display-or/";
+    const BL_URL = "https://fc09jugendfussball.github.io/display-ul/";
+    const BR_URL = "https://fc09jugendfussball.github.io/display-ur/";
+    const RELOAD_HOURLY_MS = 60*60*1000;
 
-    const RELOAD_EVERY_MS = 60 * 60 * 1000; // stündliches Neuladen aller Bereiche
-    const CROP_STEP = 10; // Schrittweite für TL-Beschnitt
-
-    // =============================
-    // Utilities
-    // =============================
-    const $ = (sel) => document.querySelector(sel);
-    function withCacheBuster(url) {
-      const t = Date.now();
-      const sep = url.includes('?') ? '&' : '?';
-      return `${url}${sep}_=${t}`;
+    function withCB(u) { return u + (u.includes("?") ? "&" : "?") + "_=" + Date.now(); }
+    function setWeekdayGerman(el){
+      const f = new Intl.DateTimeFormat('de-DE', {weekday:'long'});
+      const d = f.format(new Date());
+      el.textContent = d.charAt(0).toUpperCase() + d.slice(1);
     }
-    function setCssVarPx(name, value) {
-      document.documentElement.style.setProperty(name, value + "px");
+    function loadAll(){
+      document.getElementById("tl").src = withCB(TL_URL);
+      document.getElementById("tr").src = withCB(TR_URL);
+      document.getElementById("bl").src = withCB(BL_URL);
+      document.getElementById("br").src = withCB(BR_URL);
     }
-    function getCssVarPx(name) {
-      const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-      return parseInt(v.replace("px", "")) || 0;
-    }
-    function saveCropTL(px) {
-      localStorage.setItem("crop_tl_px", String(px));
-    }
-    function loadCropTL() {
-      const v = parseInt(localStorage.getItem("crop_tl_px"));
-      return Number.isFinite(v) ? v : null;
-    }
-
-    // =============================
-    // Initialisierung
-    // =============================
-    const tl = $("#tl"), bl = $("#bl"), tr = $("#tr"), br = $("#br");
-    // Vorher gespeicherten Beschnitt anwenden (falls vorhanden)
-    const stored = loadCropTL();
-    if (stored !== null) setCssVarPx("--crop-tl", stored);
-
-    // Start-URLs setzen (mit Cache-Buster)
-    function loadAll() {
-      tl.src = withCacheBuster(TL_URL);
-      bl.src = withCacheBuster(BL_URL);
-      tr.src = withCacheBuster(TR_URL);
-      br.src = withCacheBuster(BR_URL);
-    }
+    setWeekdayGerman(document.getElementById('weekday'));
+    setInterval(()=>setWeekdayGerman(document.getElementById('weekday')), 60_000);
     loadAll();
+    setInterval(loadAll, RELOAD_HOURLY_MS);
 
-    // Automatisches, periodisches Neuladen
-    setInterval(loadAll, RELOAD_EVERY_MS);
-
-    // HUD-Buttons
-    $("#reloadAll").addEventListener("click", loadAll);
-    $("#fullscreen").addEventListener("click", () => {
+    document.getElementById('reload').addEventListener('click', loadAll);
+    document.getElementById('fullscreen').addEventListener('click', ()=>{
       const root = document.documentElement;
-      if (!document.fullscreenElement) root.requestFullscreen?.();
-      else document.exitFullscreen?.();
+      if (!document.fullscreenElement) root.requestFullscreen?.(); else document.exitFullscreen?.();
     });
-    $("#tlPlus").addEventListener("click", () => {
-      const v = getCssVarPx("--crop-tl") + CROP_STEP;
-      setCssVarPx("--crop-tl", v); saveCropTL(v);
-    });
-    $("#tlMinus").addEventListener("click", () => {
-      const v = Math.max(0, getCssVarPx("--crop-tl") - CROP_STEP);
-      setCssVarPx("--crop-tl", v); saveCropTL(v);
-    });
-
-    // Hinweis zu X-Frame-Options/CSP
-    console.log("Hinweis: Wenn eine Zielseite/Ordner das Einbetten verbietet (X-Frame-Options/CSP), muss das serverseitig erlaubt sein.");
   </script>
 </body>
 </html>
